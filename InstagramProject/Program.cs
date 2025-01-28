@@ -8,10 +8,13 @@ class Program
     {
         var context = new InstagramContext();
         AccountManager accountManager = new AccountManager(context);
-        DisplayInstagramMenu instagramMenu = new DisplayInstagramMenu();
+        DisplayInstagramMenu instagramMenu = new DisplayInstagramMenu(accountManager);
 
-        // Skapa ett konto först om användaren vill
-        accountManager.CreateAccount();
+        // Skapa ett konto 
+        //accountManager.CreateAccount();
+
+        // Kör settingsmenu
+        instagramMenu.DisplaySettingsMenu();
 
         // Kör huvudmenyn
         //instagramMenu.RunSystem();

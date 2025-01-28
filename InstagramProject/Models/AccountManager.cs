@@ -14,6 +14,99 @@ namespace InstagramProject.Models
             _context = context;
         }
 
+        public void CreateAccount()
+        {
+            string userName = GetUserName();
+            Console.WriteLine($"Username '{userName}' accepted!");
+
+            string email = GetEmail();
+            Console.WriteLine($"Email '{email}' accepted!");
+
+            string password = GetPassword();
+            Console.WriteLine("Password accepted!");
+
+            User newUser = new User
+            {
+                UserName = userName,
+                Email = email,
+                Password = password
+            };
+
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
+
+            Console.WriteLine("User account created successfully!");
+        }
+        public void ChangeUserDetail(string fieldType)
+        {
+            // När inloggingen är klar så kommer vi få ändra här så att användaren
+            // man är inloggad på skickas hit, istället för att skriva in UserId
+            // var mest så vi det att det funkar
+            Console.WriteLine("Enter your user ID:");
+            int userId = Convert.ToInt32(Console.ReadLine());
+
+            User user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+            if (user == null)
+            {
+                Console.WriteLine("User not found.");
+                return;
+            }
+            switch (fieldType)
+            {
+
+                case "username":
+                    user.UserName = GetUserName();
+                    break;
+                case "password":
+                    user.Password = GetPassword();
+                    break;
+                case "email":
+                    user.Email = GetEmail();
+                    break;
+            }
+
+            _context.SaveChanges();
+            Console.WriteLine($"{fieldType} updated successfully!");
+        }
+
+        public string GetUserName()
+        {
+            return ValidateNotEmptyAndUnique(
+                "Enter a username:",
+                "Username cannot be empty. Please try again.",
+                "Username already exists. Please choose another one.",
+                user => user.UserName!
+            );
+        }
+
+        public string GetEmail()
+        {
+            return ValidateNotEmptyAndUnique(
+                "Enter a email:",
+                "Email cannot be empty. Please try again.",
+                "Email already exists. Please choose another one.",
+                user => user.Email!
+            );
+        }
+
+        public string GetPassword()
+        {
+            while (true)
+            {
+                Console.Write("Enter a password: ");
+                string password = Console.ReadLine()!;
+
+                if (!ValidatePasswordStrength(password))
+                {
+                    Console.WriteLine("Please enter a stronger password.");
+                }
+                else
+                {
+                    Console.WriteLine("Password is strong enough.");
+                return password;
+                }
+            }
+        }
         public string ValidateNotEmptyAndUnique(string inputPrompt, string emptyErrorMessage, string duplicateErrorMessage, Func<User, string> fieldSelector)
         {
             while (true)
@@ -44,6 +137,23 @@ namespace InstagramProject.Models
             }
         }
 
+        public string ValidateNotEmpty(string inputPrompt, string emptyErrorMessage)
+        {
+            while (true)
+            {
+                Console.WriteLine(inputPrompt);
+                string userInput = Console.ReadLine()!;
+
+                if (string.IsNullOrEmpty(userInput))
+                {
+                    Console.WriteLine(emptyErrorMessage);
+                }
+                else
+                {
+                    return userInput;
+                }
+            }
+        }
         public bool ValidatePasswordStrength(string password)
         {
             List<string> errors = new List<string>();
@@ -75,76 +185,6 @@ namespace InstagramProject.Models
             }
 
             return true;
-        }
-
-        public string ValidateNotEmpty(string inputPrompt, string emptyErrorMessage)
-        {
-            while (true)
-            {
-                Console.WriteLine(inputPrompt);
-                string userInput = Console.ReadLine()!;
-
-                if (string.IsNullOrEmpty(userInput))
-                {
-                    Console.WriteLine(emptyErrorMessage);
-                }
-                else
-                {
-                    return userInput;
-                }
-            }
-        }
-
-        public void CreateAccount()
-        {
-            string userName = ValidateNotEmptyAndUnique(
-                "Enter a username:",
-                "Username cannot be empty. Please try again.",
-                "Username already exists. Please choose another one.",
-                user => user.UserName!
-            );
-
-            Console.WriteLine($"Username '{userName}' accepted!");
-
-            string email = ValidateNotEmptyAndUnique(
-                "Enter a email:",
-                "Email cannot be empty. Please try again.",
-                "Email already exists. Please choose another one.",
-                user => user.Email!
-            );
-
-            Console.WriteLine($"Email '{email}' accepted!");
-
-            string password;
-            while (true)
-            {
-                Console.Write("Enter a password: ");
-                password = Console.ReadLine()!;
-
-                if (!ValidatePasswordStrength(password))
-                {
-                    Console.WriteLine("Please enter a stronger password.");
-                }
-                else
-                {
-                    Console.WriteLine("Password is strong enough.");
-                    break;
-                }
-            }
-
-            Console.WriteLine("Password accepted!");
-
-            User newUser = new User
-            {
-                UserName = userName,
-                Email = email,
-                Password = password
-            };
-
-            _context.Users.Add(newUser);
-            _context.SaveChanges();
-
-            Console.WriteLine("User account created successfully!");
         }
     }
 }

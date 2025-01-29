@@ -5,6 +5,12 @@ namespace InstagramProject.Models
 {
     public class DisplayInstagramMenu
     {
+    private readonly AccountManager AccountManager;
+
+    public DisplayInstagramMenu(AccountManager accountManager)
+    {
+            AccountManager = accountManager;
+    }
         public void DisplayUserMenu()
         {
             var menu = new SelectionPrompt<string>()
@@ -103,13 +109,13 @@ namespace InstagramProject.Models
             switch (choice)
             {
                 case "Change Username":
-                    // instagram.ChangeUsername();
+                    AccountManager.ChangeUserDetail("username");
                     break;
                 case "Change Password":
-                    // instagram.ChangePassword();
+                    AccountManager.ChangeUserDetail("password");
                     break;
                 case "Change Email":
-                    // instagram.ChangeEmail();
+                    AccountManager.ChangeUserDetail("email");
                     break;
                 case "Back to Main Menu":
                     DisplayUserMenu();

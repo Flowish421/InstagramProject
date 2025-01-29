@@ -1,6 +1,22 @@
-﻿// See https://aka.ms/new-console-template for more information
-using InstagramProject.Models;
+﻿using InstagramProject.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
 
-Console.WriteLine("Hello, World!");
-DisplayInstagramMenu instagram = new DisplayInstagramMenu();
-instagram.RunSystem();
+class Program
+{
+    static void Main(string[] args)
+    {
+        var context = new InstagramContext();
+        AccountManager accountManager = new AccountManager(context);
+        DisplayInstagramMenu instagramMenu = new DisplayInstagramMenu(accountManager);
+
+        // Skapa ett konto 
+        //accountManager.CreateAccount();
+
+        // Kör settingsmenu
+        instagramMenu.DisplaySettingsMenu();
+
+        // Kör huvudmenyn
+        //instagramMenu.RunSystem();
+    }
+}

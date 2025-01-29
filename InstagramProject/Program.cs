@@ -1,51 +1,76 @@
 ﻿using System;
-using Microsoft.Data.SqlClient;  // Correct namespace for SqlClient
+using System.Linq;
+using InstagramProject.Models;
+using Microsoft.EntityFrameworkCore;
 
-class Program
+namespace ConsoleApp
 {
-    static void Main()
+    class Program
     {
-        // Ask the user for their username and password
-        Console.Write("Enter Username: ");
-        string username = Console.ReadLine();
-
-        Console.Write("Enter Password: ");
-        string password = Console.ReadLine();
-
-        // Call the function to check credentials
-        bool isAuthenticated = AuthenticateUser(username, password);
-
-        // Display message based on the result
-        if (isAuthenticated)
+        static void Main()
         {
-            Console.WriteLine("Login successful!");
+            // Begär användarinmatning
+            Console.Write("Ange användarnamn: ");
+            string username = Console.ReadLine();
+            Console.Write("Ange lösenord: ");
+            string password = Console.ReadLine();
+
+            // Testa anslutningen till databasen innan vi fortsätter
+            if (TestDatabaseConnection())
+            {
+                // Försök att autentisera användaren
+                bool isAuthenticated = AuthenticateUser(username, password);
+
+                if (isAuthenticated)
+                {
+                    Console.WriteLine("Inloggning lyckades!");
+                }
+                else
+                {
+                    Console.WriteLine("Fel användarnamn eller lösenord.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Kunde inte ansluta till databasen.");
+            }
+
+            Console.ReadLine();
         }
-        else
+
+        // Metod för att testa anslutning till databasen utan att skriva ut användarna
+        private static bool TestDatabaseConnection()
         {
-            Console.WriteLine("Error: No such account or incorrect password.");
+            try
+            {
+                using (var context = new InstagramContext())
+                {
+                    // Försök att hämta alla användare för att se om databasen är tillgänglig
+                    var users = context.Users.Take(1).ToList(); // Ta bara 1 användare för att testa anslutningen
+
+                    return true;  // Om vi kan hämta en användare, anslutning är okej
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Fel vid anslutning till databasen: {ex.Message}");
+                return false;
+            }
         }
-    }
 
-    static bool AuthenticateUser(string username, string password)
-    {
-        // Define your connection string (replace with actual connection details)
-        string connectionString = "Server=MSI;Database=Instagram;Integrated Security=True;TrustServerCertificate=True;";
-
-
-        // SQL query to check if the username and password match
-        string query = "SELECT COUNT(1) FROM Users WHERE Username = @Username AND Password = @Password";
-
-        using (SqlConnection connection = new SqlConnection(connectionString))
+        // Metod för att autentisera användaren via Entity Framework
+        private static bool AuthenticateUser(string username, string password)
         {
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@Username", username);
-            command.Parameters.AddWithValue("@Password", password);  // In production, use hashed passwords
+            using (var context = new InstagramContext())  // Använd din InstagramContext
+            {
+                // Använd ToLower() för att säkerställa att jämförelsen är okänslig för stora och små bokstäver
+                var user = context.Users
+                    .Where(u => u.UserName.ToLower() == username.ToLower() && u.Password == password)
+                    .FirstOrDefault();  // Hämta den första matchande användaren
 
-            connection.Open();
-            int userCount = (int)command.ExecuteScalar();
-
-            // Return true if user exists, false otherwise
-            return userCount > 0;
+                // Om användaren hittas, autentisering är lyckad
+                return user != null;
+            }
         }
     }
 }

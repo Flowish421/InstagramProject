@@ -5,7 +5,7 @@ namespace InstagramProject.Models;
 
 public partial class User
 {
-    public int UserId { get; set; }
+    public int UserID { get; set; }
 
     public string? UserName { get; set; }
 

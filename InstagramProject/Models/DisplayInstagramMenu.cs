@@ -6,11 +6,24 @@ namespace InstagramProject.Models
     public class DisplayInstagramMenu
     {
     private readonly AccountManager AccountManager;
+        private readonly InstagramContext _context;
 
-    public DisplayInstagramMenu(AccountManager accountManager)
+
+
+
+        public DisplayInstagramMenu(AccountManager accountManager, PostManagement postManagement)
     {
             AccountManager = accountManager;
-    }
+            PostManagement = postManagement;
+
+        }
+
+        private readonly PostManagement PostManagement;
+
+        public DisplayInstagramMenu(PostManagement postManagement)
+        {
+            PostManagement = postManagement;
+        }
         public void DisplayUserMenu()
         {
             var menu = new SelectionPrompt<string>()
@@ -22,7 +35,7 @@ namespace InstagramProject.Models
             switch (choice)
             {
                 case "Create Post":
-                    // instagram.CreatePost();
+                    PostManagement.CreatePostFromUserInput();
                     break;
                 case "Show Posts":
                     HandlePostMenu();
@@ -51,7 +64,7 @@ namespace InstagramProject.Models
                     // instagram.ShowYourPosts();
                     break;
                 case "Show All Posts":
-                    // instagram.ShowAllPosts();
+                    PostManagement.DisplayAllPosts();
                     break;
                 case "Search for User's Posts":
                     // Console.WriteLine("Enter the username to search posts:");

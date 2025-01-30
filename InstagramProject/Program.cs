@@ -1,22 +1,42 @@
 ﻿using InstagramProject.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 class Program
 {
     static void Main(string[] args)
     {
-        var context = new InstagramContext();
-        AccountManager accountManager = new AccountManager(context);
-        DisplayInstagramMenu instagramMenu = new DisplayInstagramMenu(accountManager);
+        using (var context = new InstagramContext()) // ✅ Use ONE instance for all services
+        {
+            context.Database.EnsureCreated(); // ✅ Ensure the database is set up
 
-        // Skapa ett konto 
-        //accountManager.CreateAccount();
+            // 🔹 Ensure a user exists in the database
+            var currentUser = context.Users.FirstOrDefault();
+            if (currentUser == null)
+            {
+                currentUser = new User
+                {
+                    UserName = "JohnDoe",
+                    Password = "1234",
+                    Email = "john@example.com"
+                };
+                context.Users.Add(currentUser);
+                context.SaveChanges();
+            }
 
-        // Kör settingsmenu
-        instagramMenu.DisplaySettingsMenu();
+            // 🔹 Initialize AccountManager and PostManagement properly
+            AccountManager accountManager = new AccountManager(context);
+            PostManagement postManagement = new PostManagement(context, currentUser);
 
-        // Kör huvudmenyn
-        //instagramMenu.RunSystem();
+            // ✅ Pass PostManagement to DisplayInstagramMenu
+            DisplayInstagramMenu instagramMenu = new DisplayInstagramMenu(accountManager, postManagement);
+
+            // 🔹 Run Instagram Menu
+            instagramMenu.DisplaySettingsMenu();
+            instagramMenu.DisplayUserMenu();
+
+            // 🔹 Create and Show Posts
+            postManagement.CreatePostFromUserInput();
+            postManagement.DisplayAllPosts();
+        }
     }
 }

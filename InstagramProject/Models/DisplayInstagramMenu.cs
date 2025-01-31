@@ -5,24 +5,17 @@ namespace InstagramProject.Models
 {
     public class DisplayInstagramMenu
     {
-        private readonly AccountManager AccountManager;
+        private readonly AccountManager _accountManager;
         private readonly InstagramContext _context;
+        private User _currentUser;
+        private PostManagement _postManagement;
 
-
-
-
-        public DisplayInstagramMenu(AccountManager accountManager, PostManagement postManagement)
+        public DisplayInstagramMenu(User currentUser, InstagramContext context, AccountManager accountManager)
         {
-            AccountManager = accountManager;
-            PostManagement = postManagement;
-
-        }
-
-        private readonly PostManagement PostManagement;
-
-        public DisplayInstagramMenu(PostManagement postManagement)
-        {
-            PostManagement = postManagement;
+            _currentUser = currentUser;
+            _context = context;
+            _accountManager = accountManager;
+            _postManagement = new PostManagement(_context, _currentUser, this);
         }
         public void DisplayUserMenu()
         {
@@ -35,7 +28,7 @@ namespace InstagramProject.Models
             switch (choice)
             {
                 case "Create Post":
-                    PostManagement.CreatePostFromUserInput();
+                    _postManagement.CreatePost();
                     break;
                 case "Show Posts":
                     HandlePostMenu();
@@ -61,13 +54,14 @@ namespace InstagramProject.Models
             switch (choice)
             {
                 case "Show Your Posts":
-                    // instagram.ShowYourPosts();
+                   _postManagement.ViewPosts(_currentUser.UserName!);
                     break;
                 case "Show All Posts":
-                    PostManagement.DisplayAllPosts();
+                    _postManagement.ViewPosts("all");
                     break;
                 case "Search for User's Posts":
-                    PostManagement.SearchForUserPosts();
+                    var username = AnsiConsole.Ask<string>("Enter the [green]username[/] to search:");
+                    _postManagement.ViewPosts(username);
                     break;
                 case "Back to Main Menu":
                     DisplayUserMenu();
@@ -120,13 +114,16 @@ namespace InstagramProject.Models
             switch (choice)
             {
                 case "Change Username":
-                    AccountManager.ChangeUserDetail("username");
+                    var newUsername = AnsiConsole.Ask<string>("Enter your [green]new username[/]:");
+                    _accountManager.ChangeUserDetail("username", newUsername);
                     break;
                 case "Change Password":
-                    AccountManager.ChangeUserDetail("password");
+                    var newPassword = AnsiConsole.Ask<string>("Enter your [green]new password[/]:");
+                    _accountManager.ChangeUserDetail("password", newPassword);
                     break;
                 case "Change Email":
-                    AccountManager.ChangeUserDetail("email");
+                    var newEmail = AnsiConsole.Ask<string>("Enter your [green]new email[/]:");
+                    _accountManager.ChangeUserDetail("email", newEmail);
                     break;
                 case "Back to Main Menu":
                     DisplayUserMenu();

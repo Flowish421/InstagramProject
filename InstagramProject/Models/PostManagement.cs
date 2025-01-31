@@ -13,196 +13,241 @@ namespace InstagramProject.Models
     {
         private readonly InstagramContext _context;
         private readonly User _currentUser;
+        private readonly DisplayInstagramMenu _displayInstagramMenu;
 
-        public PostManagement(InstagramContext context, User user)
+        public PostManagement(InstagramContext context, User user, DisplayInstagramMenu displayInstagramMenu)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context), "Database context cannot be null.");
             _currentUser = user ?? throw new ArgumentNullException(nameof(user), "User cannot be null.");
+            _displayInstagramMenu = displayInstagramMenu ?? throw new ArgumentNullException(nameof(displayInstagramMenu), "DisplayInstagramMenu cannot be null.");
         }
 
-        // Method to create a post with user input
-        public void CreatePostFromUserInput()
-        {
-            // Prompt user for the image URL with Spectre's text input
-            string imageUrl = AnsiConsole.Prompt(
-                new TextPrompt<string>("[bold yellow]   Enter the picture URL:[/]")
-                    .PromptStyle("cyan")
-                    .Validate(url => !string.IsNullOrWhiteSpace(url) ? ValidationResult.Success() : ValidationResult.Error("[red]URL cannot be empty![/]"))
-            );
 
-            // Prompt user for the caption with validation (max 250 chars)
-            string caption = AnsiConsole.Prompt(
-                new TextPrompt<string>("[bold yellow]   Enter the caption (max 250 characters):[/]")
-                    .PromptStyle("cyan")
+        //Create Post
+        public void CreatePost()
+        {
+            var image = AnsiConsole.Ask<string>("Enter the [green]image URL[/]:");
+            var caption = AnsiConsole.Prompt(
+                new TextPrompt<string>("Enter the [green]caption[/]:")
                     .Validate(text =>
-                        string.IsNullOrWhiteSpace(text) ? ValidationResult.Error("[red]Caption cannot be empty![/]") :
-                        text.Length > 250 ? ValidationResult.Error("[red]Caption is too long! (Max 250 characters)[/]") :
-                        ValidationResult.Success()
-                    )
+                    {
+                        return text.Length > 250 ? ValidationResult.Error("[red]Caption cannot be longer than 250 characters![/]") : ValidationResult.Success();
+                    })
             );
 
-            // Create and save post
-            var newPost = new Post
+            using (var context = new InstagramContext())
             {
-                Image = imageUrl,
-                Caption = caption,
-                Timestamp = DateTime.Now,
-                UserId = _currentUser.UserId
-            };
-
-            // Display confirmation message
-            AnsiConsole.MarkupLine("[bold green]   Post details collected successfully![/]");
-
-            // Call CreatePost method to save post
-            CreatePost(newPost);
-        }
-
-
-
-        // Method to create and save a new post
-        public void CreatePost(Post newPost)
-        {
-            try
-            {
-                _context.Posts.Add(newPost);
-                _context.SaveChanges();
-
-                // Success message with a styled confirmation box
-                AnsiConsole.MarkupLine("\n[bold green]   Post successfully created![/]");
-
-                var panel = new Panel($"[bold cyan]Post ID:[/] [yellow]{newPost.PostId}[/]\n" +
-                                      $"[bold cyan]Image:[/] [green]{newPost.Image}[/]\n" +
-                                      $"[bold cyan]Caption:[/] [blue]{newPost.Caption}[/]\n" +
-                                      $"[bold cyan]Timestamp:[/] [magenta]{newPost.Timestamp}[/]")
+                var post = new Post
                 {
-                    Border = BoxBorder.Rounded,
-                    Header = new PanelHeader("[bold yellow]   New Post Details[/]"),
-                    Padding = new Padding(2, 1, 2, 1)
+                    Image = image,
+                    Caption = caption,
+                    UserId = _currentUser.UserId,
+                    Timestamp = DateTime.Now
                 };
-
-                AnsiConsole.Write(panel);
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.MarkupLine($"[bold red]   Error creating post:[/] {ex.Message}");
+                context.Posts.Add(post);
+                context.SaveChanges();
+                AnsiConsole.MarkupLine("[bold green]Post created successfully![/]");
             }
         }
 
-        // Method to display all posts
-        public void DisplayAllPosts()
+        //View Posts
+        public void ViewPosts(string username)
         {
-            try
+            using (var context = new InstagramContext())
             {
-                var posts = _context.Posts.ToList();
+                List<Post> posts;
 
-                if (posts.Count == 0)
+                if (username == "all")
                 {
-                    AnsiConsole.MarkupLine("[bold yellow]   No posts found in the database.[/]");
-                    return;
-                }
-
-                // Create a table
-                var table = new Table();
-                table.Border(TableBorder.Rounded);
-                table.AddColumn("[cyan]Post ID[/]");
-                table.AddColumn("[green]Image[/]");
-                table.AddColumn("[blue]Caption[/]");
-                table.AddColumn("[magenta]Timestamp[/]");
-
-                // Add posts to the table
-                foreach (var post in posts)
-                {
-                    table.AddRow(
-                        $"[cyan]{post.PostId}[/]",
-                        $"[green]{post.Image}[/]",
-                        $"[blue]{post.Caption}[/]",
-                        $"[magenta]{post.Timestamp}[/]"
-                    );
-                }
-
-                // Display the table
-                AnsiConsole.Write(table);
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.MarkupLine($"[bold red]   Error retrieving posts:[/] {ex.Message}");
-            }
-        }
-
-
-        public void SearchForUserPosts()
-        {
-            try
-            {
-                // Fetch all users
-                var users = _context.Users.ToList();
-
-                if (users.Count == 0)
-                {
-                    Console.WriteLine(" No users found in the database.");
-                    return;
-                }
-
-                // Display all users' names and IDs
-                Console.WriteLine("\n List of Users:");
-                foreach (var user in users)
-                {
-                    Console.WriteLine($"[{user.UserId}] {user.UserName}");
-                }
-
-                // Prompt user to select a user by username or ID
-                Console.Write("\nEnter the username or ID to search for posts: ");
-                string userInput = Console.ReadLine()?.Trim();
-
-                // Validate input
-                if (string.IsNullOrEmpty(userInput))
-                {
-                    Console.WriteLine(" Input cannot be empty.");
-                    return;
-                }
-
-                // Try to parse user input as ID, if possible
-                int userId;
-                User selectedUser = null;
-
-                if (int.TryParse(userInput, out userId))
-                {
-                    // Search user by ID
-                    selectedUser = _context.Users.FirstOrDefault(u => u.UserId == userId);
+                    posts = context.Posts
+                        .Include(p => p.User)
+                        .Include(p => p.Likes)
+                        .Include(p => p.Comments)
+                        .Include(p => p.Shares)
+                        .ToList();
                 }
                 else
                 {
-                    // Search user by username
-                    selectedUser = _context.Users.FirstOrDefault(u => u.UserName.Equals(userInput, StringComparison.OrdinalIgnoreCase));
+                    var user = context.Users
+                        .Include(u => u.Posts)
+                        .ThenInclude(p => p.Likes)
+                        .Include(u => u.Posts)
+                        .ThenInclude(p => p.Comments)
+                        .Include(u => u.Posts)
+                        .ThenInclude(p => p.Shares)
+                        .FirstOrDefault(u => u.UserName == username);
+
+                    if (user == null)
+                    {
+                        AnsiConsole.MarkupLine("[bold red]User not found.[/]");
+                        _displayInstagramMenu.DisplayPostMenu();
+                        
+                        return;
+                    }
+
+                    posts = user.Posts.ToList();
                 }
 
-                if (selectedUser == null)
+                if (posts.Any())
                 {
-                    Console.WriteLine($" No user found with the provided input: {userInput}");
-                    return;
+                    int currentIndex = 0;
+                    while (true)
+                    {
+                        var post = posts[currentIndex];
+                        var user = post.User;
+
+                        DisplayPost(post, user, currentIndex, posts.Count);
+
+                        var navigationMenu = new SelectionPrompt<string>()
+                            .Title("[bold yellow]------ Navigation ------[/]")
+                            .AddChoices("Next", "Previous", "Comment", "Share", "Exit");
+
+                        // Check if the user has already liked the post
+                        var userLike = post.Likes.FirstOrDefault(l => l.UserId == _currentUser.UserId);
+                        if (userLike != null)
+                        {
+                            navigationMenu.AddChoice("Unlike");
+                        }
+                        else
+                        {
+                            navigationMenu.AddChoice("Like");
+                        }
+
+                        string navigationChoice = AnsiConsole.Prompt(navigationMenu);
+
+                        switch (navigationChoice)
+                        {
+                            case "Next":
+                                currentIndex = (currentIndex + 1) % posts.Count;
+                                break;
+                            case "Previous":
+                                currentIndex = (currentIndex - 1 + posts.Count) % posts.Count;
+                                break;
+                            case "Like":
+                                LikePost(post);
+                                break;
+                            case "Unlike":
+                                UnlikePost(post, userLike);
+                                break;
+                            case "Comment":
+                                CommentOnPost(post);
+                                break;
+                            case "Share":
+                                SharePost(post);
+                                break;
+                            case "Exit":
+                                _displayInstagramMenu.DisplayPostMenu();
+                                return;
+                        }
+
+                        // Reload the post to get updated data
+                        post = context.Posts
+                            .Include(p => p.User)
+                            .Include(p => p.Likes)
+                            .Include(p => p.Comments)
+                            .Include(p => p.Shares)
+                            .FirstOrDefault(p => p.PostId == post.PostId);
+
+                        user = post.User;
+                    }
                 }
-
-                // Fetch posts by the selected user ID
-                var posts = _context.Posts.Where(p => p.UserId == selectedUser.UserId).ToList();
-
-                if (posts.Count == 0)
+                else
                 {
-                    Console.WriteLine($" No posts found for user: {selectedUser.UserName}");
-                    return;
+                    AnsiConsole.MarkupLine("[bold red]No posts available.[/]");
+                    _displayInstagramMenu.DisplayPostMenu();
                 }
-
-                // Display posts by the selected user
-                Console.WriteLine($"\n Posts by {selectedUser.UserName}:");
-                foreach (var post in posts)
-                {
-                    Console.WriteLine($"[{post.PostId}] {post.Image} - {post.Caption} ({post.Timestamp})");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($" Error retrieving posts: {ex.Message}");
             }
         }
+        private void DisplayPost(Post post, User user, int currentIndex, int totalPosts)
+        {
+            AnsiConsole.Clear();
+            AnsiConsole.MarkupLine($"[bold yellow]Post {currentIndex + 1}/{totalPosts}[/]");
+            AnsiConsole.MarkupLine($"[bold yellow]{post.Image}[/]");
+            AnsiConsole.MarkupLine($"{post.Caption}");
+            AnsiConsole.MarkupLine($"[italic]Posted by {user?.UserName} on {post.Timestamp}[/]");
+            AnsiConsole.MarkupLine("");
+            AnsiConsole.MarkupLine($"[bold yellow]Likes: {post.Likes.Count}, Comments: {post.Comments.Count}, Shares: {post.Shares.Count}[/]");
+        }
 
+
+        //Like, Unlike, Comment, Share Methods
+        private void LikePost(Post post)
+        {
+            using (var context = new InstagramContext())
+            {
+                var like = new Like
+                {
+                    PostId = post.PostId,
+                    UserId = _currentUser.UserId,
+                    Timestamp = DateTime.Now
+                };
+
+                context.Likes.Add(like);
+                context.SaveChanges();
+                AnsiConsole.MarkupLine("[bold green]Post liked![/]");
+            }
+        }
+        private void UnlikePost(Post post, Like userLike)
+        {
+            using (var context = new InstagramContext())
+            {
+                context.Likes.Remove(userLike);
+                context.SaveChanges();
+                AnsiConsole.MarkupLine("[bold green]Post unliked![/]");
+            }
+        }
+        private void CommentOnPost(Post post)
+        {
+            using (var context = new InstagramContext())
+            {
+                var comments = context.Comments
+                    .Include(c => c.User)
+                    .Where(c => c.PostId == post.PostId)
+                    .ToList();
+
+                if (comments.Any())
+                {
+                    AnsiConsole.MarkupLine("[bold yellow]Comments:[/]");
+                    foreach (var comment in comments)
+                    {
+                        AnsiConsole.MarkupLine($"[bold]{comment.User?.UserName}[/] commented: \"{comment.CommentText}\" on {comment.Timestamp}");
+                    }
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("[bold red]No comments available.[/]");
+                }
+
+                var commentText = AnsiConsole.Ask<string>("Enter your [green]comment[/]:");
+
+                var newComment = new Comment
+                {
+                    PostId = post.PostId,
+                    UserId = _currentUser.UserId,
+                    CommentText = commentText,
+                    Timestamp = DateTime.Now
+                };
+
+                context.Comments.Add(newComment);
+                context.SaveChanges();
+                AnsiConsole.MarkupLine("[bold green]Comment added![/]");
+            }
+        }
+        private void SharePost(Post post)
+        {
+            using (var context = new InstagramContext())
+            {
+                var share = new Share
+                {
+                    PostId = post.PostId,
+                    UserId = _currentUser.UserId,
+                    Timestamp = DateTime.Now
+                };
+
+                context.Shares.Add(share);
+                context.SaveChanges();
+                AnsiConsole.MarkupLine("[bold green]Post shared![/]");
+            }
+        }
     }
 }

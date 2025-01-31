@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,65 @@ namespace InstagramProject.Models
     public class AccountManager
     {
         private readonly InstagramContext _context;
+        private User _loggedInUser;
+        DisplayInstagramMenu instagramMenu;
 
         public AccountManager(InstagramContext context)
         {
             _context = context;
         }
+
+        public void LoginMenu()
+        {
+            var loginMenu = new SelectionPrompt<string>()
+                .Title("[bold yellow]------ Login Menu ------[/]")
+                .AddChoices("Login", "Create User", "Exit");
+
+            string loginChoice = AnsiConsole.Prompt(loginMenu);
+
+            switch (loginChoice)
+            {
+                case "Login":
+                    HandleLogin();
+                    break;
+                case "Create User":
+                    CreateAccount();
+                    break;
+                case "Exit":
+                    AnsiConsole.MarkupLine("[bold red]Exit...[/]");
+                    Environment.Exit(0);
+                    break;
+            }
+        }
+
+
+        private void HandleLogin()
+        {
+            //Ahmed kör sin kod här.
+        }
+
+        //private void HandleLoginExtra()
+        //{
+        //    var username = AnsiConsole.Ask<string>("Enter your [green]username[/]:");
+        //    var password = AnsiConsole.Ask<string>("Enter your [green]password[/]:");
+
+        //    var user = _context.Users.FirstOrDefault(user => user.UserName == username && user.Password == password);
+
+        //    if (user != null)
+        //    {
+        //        _loggedInUser = user;
+        //        AnsiConsole.MarkupLine("[bold green]Login successful![/]");
+
+        //        //Här skapar jag DisplayInstragramMenu objektet och sen skickar in all nödvändig data vidare till den objektet
+        //        instagramMenu = new DisplayInstagramMenu(_loggedInUser, _context, this);
+        //        //Sen kör jag metoden för att visa användarmenyn för användaren när den är inloggad.
+        //        instagramMenu.DisplayUserMenu();
+        //    }
+        //    else
+        //    {
+        //        AnsiConsole.MarkupLine("[bold red]Invalid username or password.[/]");
+        //    }
+        //}
 
         public void CreateAccount()
         {
@@ -37,36 +92,33 @@ namespace InstagramProject.Models
 
             Console.WriteLine("User account created successfully!");
         }
-        public void ChangeUserDetail(string fieldType)
+        public void ChangeUserDetail(string fieldType, string newValue)
         {
             // När inloggingen är klar så kommer vi få ändra här så att användaren
             // man är inloggad på skickas hit, istället för att skriva in UserId
             // var mest så vi det att det funkar
-            Console.WriteLine("Enter your user ID:");
-            int userId = Convert.ToInt32(Console.ReadLine());
+            //Console.WriteLine("Enter your user ID:");
+            //int userId = Convert.ToInt32(Console.ReadLine());
 
-            User user = _context.Users.FirstOrDefault(u => u.UserId == userId);
-            if (user == null)
+            //User user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+            if (_loggedInUser != null)
             {
-                Console.WriteLine("User not found.");
-                return;
+                var user = _context.Users.FirstOrDefault(u => u.UserId == _loggedInUser.UserId);
+                if (user != null)
+                {
+                    switch (fieldType)
+                    {
+                        case "Password":
+                            user.Password = newValue;
+                            break;
+                        case "Email":
+                            user.Email = newValue;
+                            break;
+                    }
+                    _context.SaveChanges();
+                    AnsiConsole.MarkupLine($"[bold green]{fieldType} updated successfully![/]");
+                }
             }
-            switch (fieldType)
-            {
-
-                case "username":
-                    user.UserName = GetUserName();
-                    break;
-                case "password":
-                    user.Password = GetPassword();
-                    break;
-                case "email":
-                    user.Email = GetEmail();
-                    break;
-            }
-
-            _context.SaveChanges();
-            Console.WriteLine($"{fieldType} updated successfully!");
         }
 
         public string GetUserName()

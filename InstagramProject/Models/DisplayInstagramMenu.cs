@@ -5,14 +5,14 @@ namespace InstagramProject.Models
 {
     public class DisplayInstagramMenu
     {
-    private readonly AccountManager AccountManager;
+        private readonly AccountManager AccountManager;
         private readonly InstagramContext _context;
 
 
 
 
         public DisplayInstagramMenu(AccountManager accountManager, PostManagement postManagement)
-    {
+        {
             AccountManager = accountManager;
             PostManagement = postManagement;
 
@@ -67,9 +67,7 @@ namespace InstagramProject.Models
                     PostManagement.DisplayAllPosts();
                     break;
                 case "Search for User's Posts":
-                    // Console.WriteLine("Enter the username to search posts:");
-                    // string username = Console.ReadLine()!;
-                    // instagram.SearchUserPosts(username);
+                    PostManagement.SearchForUserPosts();
                     break;
                 case "Back to Main Menu":
                     DisplayUserMenu();

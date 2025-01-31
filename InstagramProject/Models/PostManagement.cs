@@ -139,25 +139,29 @@ namespace InstagramProject.Models
 
                 if (users.Count == 0)
                 {
-                    Console.WriteLine(" No users found in the database.");
+                    AnsiConsole.MarkupLine("[red] No users found in the database.[/]");
                     return;
                 }
 
-                // Display all users' names and IDs
-                Console.WriteLine("\n List of Users:");
+                // Display all users in a table
+                var table = new Table().Border(TableBorder.Rounded);
+                table.AddColumn("[cyan]User ID[/]");
+                table.AddColumn("[green]Username[/]");
+
                 foreach (var user in users)
                 {
-                    Console.WriteLine($"[{user.UserId}] {user.UserName}");
+                    table.AddRow($"[yellow]{user.UserId}[/]", $"[white]{user.UserName}[/]");
                 }
 
+                AnsiConsole.Write(table);
+
                 // Prompt user to select a user by username or ID
-                Console.Write("\nEnter the username or ID to search for posts: ");
-                string userInput = Console.ReadLine()?.Trim();
+                string userInput = AnsiConsole.Ask<string>("\n[bold]Enter the username or ID to search for posts:[/]").Trim();
 
                 // Validate input
                 if (string.IsNullOrEmpty(userInput))
                 {
-                    Console.WriteLine(" Input cannot be empty.");
+                    AnsiConsole.MarkupLine("[red] Input cannot be empty.[/]");
                     return;
                 }
 
@@ -178,7 +182,7 @@ namespace InstagramProject.Models
 
                 if (selectedUser == null)
                 {
-                    Console.WriteLine($" No user found with the provided input: {userInput}");
+                    AnsiConsole.MarkupLine($"[red] No user found with the provided input: {userInput}[/]");
                     return;
                 }
 
@@ -187,20 +191,28 @@ namespace InstagramProject.Models
 
                 if (posts.Count == 0)
                 {
-                    Console.WriteLine($" No posts found for user: {selectedUser.UserName}");
+                    AnsiConsole.MarkupLine($"[yellow] No posts found for user: {selectedUser.UserName}[/]");
                     return;
                 }
 
-                // Display posts by the selected user
-                Console.WriteLine($"\n Posts by {selectedUser.UserName}:");
+                // Display posts by the selected user in a table
+                var postTable = new Table().Border(TableBorder.Heavy);
+                postTable.AddColumn("[cyan]Post ID[/]");
+                postTable.AddColumn("[green]Image[/]");
+                postTable.AddColumn("[blue]Caption[/]");
+                postTable.AddColumn("[magenta]Timestamp[/]");
+
                 foreach (var post in posts)
                 {
-                    Console.WriteLine($"[{post.PostId}] {post.Image} - {post.Caption} ({post.Timestamp})");
+                    postTable.AddRow($"[yellow]{post.PostId}[/]", $"[white]{post.Image}[/]", $"[green]{post.Caption}[/]", $"[cyan]{post.Timestamp}[/]");
                 }
+
+                AnsiConsole.MarkupLine($"\n[bold cyan] Posts by {selectedUser.UserName}:[/]");
+                AnsiConsole.Write(postTable);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($" Error retrieving posts: {ex.Message}");
+                AnsiConsole.MarkupLine($"[red] Error retrieving posts: {ex.Message}[/]");
             }
         }
 

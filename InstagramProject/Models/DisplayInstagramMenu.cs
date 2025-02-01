@@ -115,15 +115,15 @@ namespace InstagramProject.Models
             {
                 case "Change Username":
                     var newUsername = AnsiConsole.Ask<string>("Enter your [green]new username[/]:");
-                    _accountManager.ChangeUserDetail("username", newUsername);
+                    _accountManager.ChangeUserDetail("Username", newUsername);
                     break;
                 case "Change Password":
                     var newPassword = AnsiConsole.Ask<string>("Enter your [green]new password[/]:");
-                    _accountManager.ChangeUserDetail("password", newPassword);
+                    _accountManager.ChangeUserDetail("Password", newPassword);
                     break;
                 case "Change Email":
                     var newEmail = AnsiConsole.Ask<string>("Enter your [green]new email[/]:");
-                    _accountManager.ChangeUserDetail("email", newEmail);
+                    _accountManager.ChangeUserDetail("Email", newEmail);
                     break;
                 case "Back to Main Menu":
                     DisplayUserMenu();

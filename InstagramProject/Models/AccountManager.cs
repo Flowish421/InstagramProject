@@ -41,33 +41,33 @@ namespace InstagramProject.Models
         }
 
 
-        private void HandleLogin()
+        private void HandleLoginExtra()
         {
             //Ahmed kör sin kod här.
         }
 
-        //private void HandleLoginExtra()
-        //{
-        //    var username = AnsiConsole.Ask<string>("Enter your [green]username[/]:");
-        //    var password = AnsiConsole.Ask<string>("Enter your [green]password[/]:");
+        private void HandleLogin()
+        {
+            var username = AnsiConsole.Ask<string>("Enter your [green]username[/]:");
+            var password = AnsiConsole.Ask<string>("Enter your [green]password[/]:");
 
-        //    var user = _context.Users.FirstOrDefault(user => user.UserName == username && user.Password == password);
+            var user = _context.Users.FirstOrDefault(user => user.UserName == username && user.Password == password);
 
-        //    if (user != null)
-        //    {
-        //        _loggedInUser = user;
-        //        AnsiConsole.MarkupLine("[bold green]Login successful![/]");
+            if (user != null)
+            {
+                _loggedInUser = user;
+                AnsiConsole.MarkupLine("[bold green]Login successful![/]");
 
-        //        //Här skapar jag DisplayInstragramMenu objektet och sen skickar in all nödvändig data vidare till den objektet
-        //        instagramMenu = new DisplayInstagramMenu(_loggedInUser, _context, this);
-        //        //Sen kör jag metoden för att visa användarmenyn för användaren när den är inloggad.
-        //        instagramMenu.DisplayUserMenu();
-        //    }
-        //    else
-        //    {
-        //        AnsiConsole.MarkupLine("[bold red]Invalid username or password.[/]");
-        //    }
-        //}
+                //Här skapar jag DisplayInstragramMenu objektet och sen skickar in all nödvändig data vidare till den objektet
+                instagramMenu = new DisplayInstagramMenu(_loggedInUser, _context, this);
+                //Sen kör jag metoden för att visa användarmenyn för användaren när den är inloggad.
+                instagramMenu.DisplayUserMenu();
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[bold red]Invalid username or password.[/]");
+            }
+        }
 
         public void CreateAccount()
         {
@@ -94,13 +94,6 @@ namespace InstagramProject.Models
         }
         public void ChangeUserDetail(string fieldType, string newValue)
         {
-            // När inloggingen är klar så kommer vi få ändra här så att användaren
-            // man är inloggad på skickas hit, istället för att skriva in UserId
-            // var mest så vi det att det funkar
-            //Console.WriteLine("Enter your user ID:");
-            //int userId = Convert.ToInt32(Console.ReadLine());
-
-            //User user = _context.Users.FirstOrDefault(u => u.UserId == userId);
             if (_loggedInUser != null)
             {
                 var user = _context.Users.FirstOrDefault(u => u.UserId == _loggedInUser.UserId);
@@ -108,6 +101,9 @@ namespace InstagramProject.Models
                 {
                     switch (fieldType)
                     {
+                        case "Username":
+                            user.UserName = newValue;
+                            break;
                         case "Password":
                             user.Password = newValue;
                             break;

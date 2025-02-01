@@ -69,19 +69,16 @@ namespace InstagramProject.Models
             }
         }
 
+
         public void CreateAccount()
         {
-            string userName = GetUserName();
-            Console.WriteLine($"Username '{userName}' accepted!");
+            string newUsername;
+            string newEmail;
+            string newPassword;
 
-            string email = GetEmail();
-            Console.WriteLine($"Email '{email}' accepted!");
-
-            string password = GetPassword();
-            Console.WriteLine("Password accepted!");
-
-            User newUser = new User
+            while (true)
             {
+              
                 UserName = userName,
                 Email = email,
                 Password = password
@@ -115,93 +112,111 @@ namespace InstagramProject.Models
                     AnsiConsole.MarkupLine($"[bold green]{fieldType} updated successfully![/]");
                 }
             }
-        }
 
-        public string GetUserName()
-        {
-            return ValidateNotEmptyAndUnique(
-                "Enter a username:",
-                "Username cannot be empty. Please try again.",
-                "Username already exists. Please choose another one.",
-                user => user.UserName!
-            );
-        }
-
-        public string GetEmail()
-        {
-            return ValidateNotEmptyAndUnique(
-                "Enter a email:",
-                "Email cannot be empty. Please try again.",
-                "Email already exists. Please choose another one.",
-                user => user.Email!
-            );
-        }
-
-        public string GetPassword()
-        {
             while (true)
             {
-                Console.Write("Enter a password: ");
-                string password = Console.ReadLine()!;
+                newEmail = AnsiConsole.Ask<string>("Enter your [green]new email[/]:");
 
-                if (!ValidatePasswordStrength(password))
+                if (CheckDuplicate(newEmail))
                 {
-                    Console.WriteLine("Please enter a stronger password.");
                 }
                 else
                 {
-                    Console.WriteLine("Password is strong enough.");
-                return password;
+                    break;
                 }
             }
-        }
-        public string ValidateNotEmptyAndUnique(string inputPrompt, string emptyErrorMessage, string duplicateErrorMessage, Func<User, string> fieldSelector)
-        {
+
             while (true)
             {
-                Console.WriteLine(inputPrompt);
-                string userInput = Console.ReadLine()!;
+                newPassword = AnsiConsole.Ask<string>("Enter your [green]new password[/]:");
 
-                if (string.IsNullOrEmpty(userInput))
+                if (ValidatePasswordStrength(newPassword))
                 {
-                    Console.WriteLine(emptyErrorMessage);
+                    break;
                 }
                 else
                 {
-                    bool exists = _context.Users
-                                          .Select(fieldSelector)
-                                          .ToList()
-                                          .Contains(userInput);
-
-                    if (exists)
-                    {
-                        Console.WriteLine(duplicateErrorMessage);
-                    }
-                    else
-                    {
-                        return userInput;
-                    }
+                    AnsiConsole.MarkupLine("[bold red]Password does not meet strength requirements. Please choose a stronger one.[/]");
                 }
             }
-        }
 
-        public string ValidateNotEmpty(string inputPrompt, string emptyErrorMessage)
-        {
-            while (true)
+            User newUser = new User
             {
-                Console.WriteLine(inputPrompt);
-                string userInput = Console.ReadLine()!;
+                UserName = newUsername,
+                Email = newEmail,
+                Password = newPassword
+            };
 
-                if (string.IsNullOrEmpty(userInput))
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
+
+            AnsiConsole.MarkupLine("[bold green]User account created successfully![/]");
+            // vill vi att användaren ska loggas in här?
+        }
+
+        public void ChangeUserDetail(string fieldType, string newValue)
+        {
+            if (_loggedInUser != null)
+            {
+                var user = _loggedInUser;
+
+                switch (fieldType)
                 {
-                    Console.WriteLine(emptyErrorMessage);
+                    case "username":
+                        if (CheckDuplicate(newValue))
+                        {
+                            return;
+                        }
+                        user.UserName = newValue;
+                        break;
+                    case "password":
+                        if (ValidatePasswordStrength(newValue))
+                        {
+                            user.Password = newValue;
+                        }
+                        else
+                        {
+                            AnsiConsole.MarkupLine("[bold red]Password does not meet strength requirements.[/]");
+                            return;
+                        }
+                        break;
+                    case "email":
+                        if (CheckDuplicate(newValue))
+                        {
+                            return;
+                        }
+                        user.Email = newValue;
+                        break;
+                    default:
+                        AnsiConsole.MarkupLine("[bold red]Invalid field type.[/]");
+                        return;
                 }
-                else
-                {
-                    return userInput;
-                }
+
+                _context.SaveChanges();
+                AnsiConsole.MarkupLine($"[bold green]{fieldType} updated successfully![/]");
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[bold red]No user is logged in.[/]");
             }
         }
+
+        private bool CheckDuplicate(string newValue)
+        {
+            if (_context.Users.Any(u => u.UserName == newValue))
+            {
+                AnsiConsole.MarkupLine("[bold red]Username already exists. Please choose a different username.[/]");
+                return true;
+            }
+
+            if (_context.Users.Any(u => u.Email == newValue))
+            {
+                AnsiConsole.MarkupLine("[bold red]Email already exists. Please choose a different email.[/]");
+                return true;
+            }
+            return false;
+        }
+
         public bool ValidatePasswordStrength(string password)
         {
             List<string> errors = new List<string>();
@@ -234,5 +249,117 @@ namespace InstagramProject.Models
 
             return true;
         }
+
+
+        //public void CreateAccount()
+        //{
+        //    string userName = GetUserName();
+        //    Console.WriteLine($"Username '{userName}' accepted!");
+
+        //    string email = GetEmail();
+        //    Console.WriteLine($"Email '{email}' accepted!");
+
+        //    string password = GetPassword();
+        //    Console.WriteLine("Password accepted!");
+
+        //    User newUser = new User
+        //    {
+        //        UserName = userName,
+        //        Email = email,
+        //        Password = password
+        //    };
+
+        //    _context.Users.Add(newUser);
+        //    _context.SaveChanges();
+
+        //    Console.WriteLine("User account created successfully!");
+        //}
+
+        //public string GetUserName()
+        //{
+        //    return ValidateNotEmptyAndUnique(
+        //        "Enter a username:",
+        //        "Username cannot be empty. Please try again.",
+        //        "Username already exists. Please choose another one.",
+        //        user => user.UserName!
+        //    );
+        //}
+
+        //public string GetEmail()
+        //{
+        //    return ValidateNotEmptyAndUnique(
+        //        "Enter a email:",
+        //        "Email cannot be empty. Please try again.",
+        //        "Email already exists. Please choose another one.",
+        //        user => user.Email!
+        //    );
+        //}
+
+        //public string GetPassword()
+        //{
+        //    while (true)
+        //    {
+        //        Console.Write("Enter a password: ");
+        //        string password = Console.ReadLine()!;
+
+        //        if (!ValidatePasswordStrength(password))
+        //        {
+        //            Console.WriteLine("Please enter a stronger password.");
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("Password is strong enough.");
+        //        return password;
+        //        }
+        //    }
+        //}
+        //public string ValidateNotEmptyAndUnique(string inputPrompt, string emptyErrorMessage, string duplicateErrorMessage, Func<User, string> fieldSelector)
+        //{
+        //    while (true)
+        //    {
+        //        Console.WriteLine(inputPrompt);
+        //        string userInput = Console.ReadLine()!;
+
+        //        if (string.IsNullOrEmpty(userInput))
+        //        {
+        //            Console.WriteLine(emptyErrorMessage);
+        //        }
+        //        else
+        //        {
+        //            bool exists = _context.Users
+        //                                  .Select(fieldSelector)
+        //                                  .ToList()
+        //                                  .Contains(userInput);
+
+        //            if (exists)
+        //            {
+        //                Console.WriteLine(duplicateErrorMessage);
+        //            }
+        //            else
+        //            {
+        //                return userInput;
+        //            }
+        //        }
+        //    }
+        //}
+
+
+        //public string ValidateNotEmpty(string inputPrompt, string emptyErrorMessage)
+        //{
+        //    while (true)
+        //    {
+        //        Console.WriteLine(inputPrompt);
+        //        string userInput = Console.ReadLine()!;
+
+        //        if (string.IsNullOrEmpty(userInput))
+        //        {
+        //            Console.WriteLine(emptyErrorMessage);
+        //        }
+        //        else
+        //        {
+        //            return userInput;
+        //        }
+        //    }
+        //}
     }
 }

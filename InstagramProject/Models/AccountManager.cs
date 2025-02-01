@@ -19,24 +19,27 @@ namespace InstagramProject.Models
 
         public void LoginMenu()
         {
-            var loginMenu = new SelectionPrompt<string>()
-                .Title("[bold yellow]------ Login Menu ------[/]")
-                .AddChoices("Login", "Create User", "Exit");
-
-            string loginChoice = AnsiConsole.Prompt(loginMenu);
-
-            switch (loginChoice)
+            while (true)
             {
-                case "Login":
-                    HandleLogin();
-                    break;
-                case "Create User":
-                    CreateAccount();
-                    break;
-                case "Exit":
-                    AnsiConsole.MarkupLine("[bold red]Exit...[/]");
-                    Environment.Exit(0);
-                    break;
+                var loginMenu = new SelectionPrompt<string>()
+                    .Title("[bold yellow]------ Login Menu ------[/]")
+                    .AddChoices("Login", "Create User", "Exit");
+
+                string loginChoice = AnsiConsole.Prompt(loginMenu);
+
+                switch (loginChoice)
+                {
+                    case "Login":
+                        HandleLogin();
+                        break;
+                    case "Create User":
+                        CreateAccount();
+                        break;
+                    case "Exit":
+                        AnsiConsole.MarkupLine("[bold red]Exit...[/]");
+                        Environment.Exit(0);
+                        break;
+                }
             }
         }
 
@@ -69,7 +72,6 @@ namespace InstagramProject.Models
             }
         }
 
-
         public void CreateAccount()
         {
             string newUsername;
@@ -78,38 +80,14 @@ namespace InstagramProject.Models
 
             while (true)
             {
-              
-                UserName = userName,
-                Email = email,
-                Password = password
-            };
+                newUsername = AnsiConsole.Ask<string>("Enter your [green]new username[/]:");
 
-            _context.Users.Add(newUser);
-            _context.SaveChanges();
-
-            Console.WriteLine("User account created successfully!");
-        }
-        public void ChangeUserDetail(string fieldType, string newValue)
-        {
-            if (_loggedInUser != null)
-            {
-                var user = _context.Users.FirstOrDefault(u => u.UserId == _loggedInUser.UserId);
-                if (user != null)
+                if (CheckDuplicate(newUsername))
                 {
-                    switch (fieldType)
-                    {
-                        case "Username":
-                            user.UserName = newValue;
-                            break;
-                        case "Password":
-                            user.Password = newValue;
-                            break;
-                        case "Email":
-                            user.Email = newValue;
-                            break;
-                    }
-                    _context.SaveChanges();
-                    AnsiConsole.MarkupLine($"[bold green]{fieldType} updated successfully![/]");
+                }
+                else
+                {
+                    break;
                 }
             }
 
@@ -162,14 +140,14 @@ namespace InstagramProject.Models
 
                 switch (fieldType)
                 {
-                    case "username":
+                    case "Username":
                         if (CheckDuplicate(newValue))
                         {
                             return;
                         }
                         user.UserName = newValue;
                         break;
-                    case "password":
+                    case "Password":
                         if (ValidatePasswordStrength(newValue))
                         {
                             user.Password = newValue;
@@ -180,7 +158,7 @@ namespace InstagramProject.Models
                             return;
                         }
                         break;
-                    case "email":
+                    case "Email":
                         if (CheckDuplicate(newValue))
                         {
                             return;
@@ -249,117 +227,5 @@ namespace InstagramProject.Models
 
             return true;
         }
-
-
-        //public void CreateAccount()
-        //{
-        //    string userName = GetUserName();
-        //    Console.WriteLine($"Username '{userName}' accepted!");
-
-        //    string email = GetEmail();
-        //    Console.WriteLine($"Email '{email}' accepted!");
-
-        //    string password = GetPassword();
-        //    Console.WriteLine("Password accepted!");
-
-        //    User newUser = new User
-        //    {
-        //        UserName = userName,
-        //        Email = email,
-        //        Password = password
-        //    };
-
-        //    _context.Users.Add(newUser);
-        //    _context.SaveChanges();
-
-        //    Console.WriteLine("User account created successfully!");
-        //}
-
-        //public string GetUserName()
-        //{
-        //    return ValidateNotEmptyAndUnique(
-        //        "Enter a username:",
-        //        "Username cannot be empty. Please try again.",
-        //        "Username already exists. Please choose another one.",
-        //        user => user.UserName!
-        //    );
-        //}
-
-        //public string GetEmail()
-        //{
-        //    return ValidateNotEmptyAndUnique(
-        //        "Enter a email:",
-        //        "Email cannot be empty. Please try again.",
-        //        "Email already exists. Please choose another one.",
-        //        user => user.Email!
-        //    );
-        //}
-
-        //public string GetPassword()
-        //{
-        //    while (true)
-        //    {
-        //        Console.Write("Enter a password: ");
-        //        string password = Console.ReadLine()!;
-
-        //        if (!ValidatePasswordStrength(password))
-        //        {
-        //            Console.WriteLine("Please enter a stronger password.");
-        //        }
-        //        else
-        //        {
-        //            Console.WriteLine("Password is strong enough.");
-        //        return password;
-        //        }
-        //    }
-        //}
-        //public string ValidateNotEmptyAndUnique(string inputPrompt, string emptyErrorMessage, string duplicateErrorMessage, Func<User, string> fieldSelector)
-        //{
-        //    while (true)
-        //    {
-        //        Console.WriteLine(inputPrompt);
-        //        string userInput = Console.ReadLine()!;
-
-        //        if (string.IsNullOrEmpty(userInput))
-        //        {
-        //            Console.WriteLine(emptyErrorMessage);
-        //        }
-        //        else
-        //        {
-        //            bool exists = _context.Users
-        //                                  .Select(fieldSelector)
-        //                                  .ToList()
-        //                                  .Contains(userInput);
-
-        //            if (exists)
-        //            {
-        //                Console.WriteLine(duplicateErrorMessage);
-        //            }
-        //            else
-        //            {
-        //                return userInput;
-        //            }
-        //        }
-        //    }
-        //}
-
-
-        //public string ValidateNotEmpty(string inputPrompt, string emptyErrorMessage)
-        //{
-        //    while (true)
-        //    {
-        //        Console.WriteLine(inputPrompt);
-        //        string userInput = Console.ReadLine()!;
-
-        //        if (string.IsNullOrEmpty(userInput))
-        //        {
-        //            Console.WriteLine(emptyErrorMessage);
-        //        }
-        //        else
-        //        {
-        //            return userInput;
-        //        }
-        //    }
-        //}
     }
 }

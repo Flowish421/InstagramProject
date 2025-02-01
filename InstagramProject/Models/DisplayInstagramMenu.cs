@@ -17,6 +17,7 @@ namespace InstagramProject.Models
             _accountManager = accountManager;
             _postManagement = new PostManagement(_context, _currentUser, this);
         }
+
         public void DisplayUserMenu()
         {
             var menu = new SelectionPrompt<string>()

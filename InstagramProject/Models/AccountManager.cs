@@ -79,38 +79,15 @@ namespace InstagramProject.Models
             while (true)
             {
               
-                UserName = userName,
-                Email = email,
-                Password = password
-            };
+                    newUsername = AnsiConsole.Ask<string>("Enter your [green]new username[/]:");
 
-            _context.Users.Add(newUser);
-            _context.SaveChanges();
-
-            Console.WriteLine("User account created successfully!");
-        }
-        public void ChangeUserDetail(string fieldType, string newValue)
-        {
-            if (_loggedInUser != null)
-            {
-                var user = _context.Users.FirstOrDefault(u => u.UserId == _loggedInUser.UserId);
-                if (user != null)
-                {
-                    switch (fieldType)
+                    if (CheckDuplicate(newUsername))
                     {
-                        case "Username":
-                            user.UserName = newValue;
-                            break;
-                        case "Password":
-                            user.Password = newValue;
-                            break;
-                        case "Email":
-                            user.Email = newValue;
-                            break;
                     }
-                    _context.SaveChanges();
-                    AnsiConsole.MarkupLine($"[bold green]{fieldType} updated successfully![/]");
-                }
+                    else
+                    {
+                        break;
+                    }
             }
 
             while (true)

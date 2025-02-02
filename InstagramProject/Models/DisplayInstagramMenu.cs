@@ -42,7 +42,7 @@ namespace InstagramProject.Models
                     break;
             }
         }
-
+        
         public void DisplayPostMenu()
         {
             var postMenu = new SelectionPrompt<string>()
@@ -65,40 +65,6 @@ namespace InstagramProject.Models
                     break;
                 case "Back to Main Menu":
                     DisplayUserMenu();
-                    break;
-            }
-        }
-
-        public void DisplayInteractionPostMenu()
-        {
-            var interactionMenu = new SelectionPrompt<string>()
-                .Title("[bold yellow]------ Interaction Post Menu ------[/]")
-                .AddChoices("Show Next Post", "Show Previous Post", "Like", "Share", "Comment / See All Comments", "Delete Post", "Back to Post Menu");
-
-            string choice = AnsiConsole.Prompt(interactionMenu);
-
-            switch (choice)
-            {
-                case "Show Next Post":
-                    // Show next post
-                    break;
-                case "Show Previous Post":
-                    // Show previous post
-                    break;
-                case "Like":
-                    // Like post
-                    break;
-                case "Share":
-                    // Share post
-                    break;
-                case "Comment / See All Comments":
-                    // See or comment
-                    break;
-                case "Delete Post":
-                    // Delete post if it's user's own post
-                    break;
-                case "Back to Post Menu":
-                    HandlePostMenu();
                     break;
             }
         }
@@ -128,26 +94,6 @@ namespace InstagramProject.Models
                 case "Back to Main Menu":
                     DisplayUserMenu();
                     break;
-            }
-        }
-
-        public void RunSystem()
-        {
-            bool running = true;
-
-            while (running)
-            {
-                DisplayUserMenu();
-
-                // To ask the user whether they want to continue:
-                var continueChoice = AnsiConsole.Prompt(new SelectionPrompt<string>()
-                    .Title("Would you like to continue?")
-                    .AddChoices("Yes", "No"));
-
-                if (continueChoice == "No")
-                {
-                    running = false;
-                }
             }
         }
 

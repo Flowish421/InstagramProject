@@ -19,31 +19,28 @@ namespace InstagramProject.Models
 
         public void LoginMenu()
         {
-            var loginMenu = new SelectionPrompt<string>()
-                .Title("[bold yellow]------ Login Menu ------[/]")
-                .AddChoices("Login", "Create User", "Exit");
-
-            string loginChoice = AnsiConsole.Prompt(loginMenu);
-
-            switch (loginChoice)
+            while (true)
             {
-                case "Login":
-                    HandleLogin();
-                    break;
-                case "Create User":
-                    CreateAccount();
-                    break;
-                case "Exit":
-                    AnsiConsole.MarkupLine("[bold red]Exit...[/]");
-                    Environment.Exit(0);
-                    break;
+                var loginMenu = new SelectionPrompt<string>()
+                    .Title("[bold yellow]------ Login Menu ------[/]")
+                    .AddChoices("Login", "Create User", "Exit");
+
+                string loginChoice = AnsiConsole.Prompt(loginMenu);
+
+                switch (loginChoice)
+                {
+                    case "Login":
+                        HandleLogin();
+                        break;
+                    case "Create User":
+                        CreateAccount();
+                        break;
+                    case "Exit":
+                        AnsiConsole.MarkupLine("[bold red]Exit...[/]");
+                        Environment.Exit(0);
+                        break;
+                }
             }
-        }
-
-
-        private void HandleLoginExtra()
-        {
-            //Ahmed kör sin kod här.
         }
 
         private void HandleLogin()
@@ -68,7 +65,6 @@ namespace InstagramProject.Models
                 AnsiConsole.MarkupLine("[bold red]Invalid username or password.[/]");
             }
         }
-
 
         public void CreateAccount()
         {
@@ -128,7 +124,6 @@ namespace InstagramProject.Models
             _context.SaveChanges();
 
             AnsiConsole.MarkupLine("[bold green]User account created successfully![/]");
-            // vill vi att användaren ska loggas in här?
         }
 
         public void ChangeUserDetail(string fieldType, string newValue)
@@ -223,7 +218,6 @@ namespace InstagramProject.Models
                 }
                 return false;
             }
-
             return true;
         }
 

@@ -45,26 +45,96 @@ namespace InstagramProject.Models
 
         private void HandleLogin()
         {
-            var username = AnsiConsole.Ask<string>("Enter your [green]username[/]:");
-            var password = AnsiConsole.Ask<string>("Enter your [green]password[/]:");
+            // Begär användarinmatning
+            Console.Write("Ange användarnamn: ");
+            string username = Console.ReadLine();
+            Console.Write("Ange lösenord: ");
+            string password = Console.ReadLine();
 
-            var user = _context.Users.FirstOrDefault(user => user.UserName == username && user.Password == password);
-
-            if (user != null)
+            // Testa anslutningen till databasen innan vi fortsätter
+            if (TestDatabaseConnection())
             {
-                _loggedInUser = user;
-                AnsiConsole.MarkupLine("[bold green]Login successful![/]");
+                // Försök att autentisera användaren
+                bool isAuthenticated = AuthenticateUser(username, password);
 
-                //Här skapar jag DisplayInstragramMenu objektet och sen skickar in all nödvändig data vidare till den objektet
-                instagramMenu = new DisplayInstagramMenu(_loggedInUser, _context, this);
-                //Sen kör jag metoden för att visa användarmenyn för användaren när den är inloggad.
-                instagramMenu.DisplayUserMenu();
+                if (isAuthenticated)
+                {
+                    Console.WriteLine("Inloggning lyckades!");
+                }
+                else
+                {
+                    Console.WriteLine("Fel användarnamn eller lösenord.");
+                }
             }
             else
             {
-                AnsiConsole.MarkupLine("[bold red]Invalid username or password.[/]");
+                Console.WriteLine("Kunde inte ansluta till databasen.");
+            }
+
+            Console.ReadLine();
+        }
+
+
+        private bool TestDatabaseConnection()
+        {
+            try
+            {
+                
+                    // Försök att hämta alla användare för att se om databasen är tillgänglig
+                    var users = _context.Users.Take(1).ToList(); // Ta bara 1 användare för att testa anslutningen
+
+                    return true;  // Om vi kan hämta en användare, anslutning är okej
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Fel vid anslutning till databasen: {ex.Message}");
+                return false;
             }
         }
+
+        // Metod för att autentisera användaren via Entity Framework
+        private bool AuthenticateUser(string username, string password)
+        {
+            using (var context = new InstagramContext())  // Använd din InstagramContext
+            {
+                // Använd ToLower() för att säkerställa att jämförelsen är okänslig för stora och små bokstäver
+                var user = context.Users
+                    .Where(u => u.UserName.ToLower() == username.ToLower() && u.Password == password)
+                    .FirstOrDefault();  // Hämta den första matchande användaren
+
+                _loggedInUser = user;
+                instagramMenu = new DisplayInstagramMenu(_loggedInUser, _context, this);
+                //Sen kör jag metoden för att visa användarmenyn för användaren när den är inloggad.
+                instagramMenu.DisplayUserMenu();
+
+                // Om användaren hittas, autentisering är lyckad de vad detta gör
+                return user != null;
+            }
+        }
+
+        //private void HandleLogin()
+        //{
+        //    var username = AnsiConsole.Ask<string>("Enter your [green]username[/]:");
+        //    var password = AnsiConsole.Ask<string>("Enter your [green]password[/]:");
+
+        //    var user = _context.Users.FirstOrDefault(user => user.UserName == username && user.Password == password);
+
+        //    if (user != null)
+        //    {
+        //        _loggedInUser = user;
+        //        AnsiConsole.MarkupLine("[bold green]Login successful![/]");
+
+        //        //Här skapar jag DisplayInstragramMenu objektet och sen skickar in all nödvändig data vidare till den objektet
+        //        instagramMenu = new DisplayInstagramMenu(_loggedInUser, _context, this);
+        //        //Sen kör jag metoden för att visa användarmenyn för användaren när den är inloggad.
+        //        instagramMenu.DisplayUserMenu();
+        //    }
+        //    else
+        //    {
+        //        AnsiConsole.MarkupLine("[bold red]Invalid username or password.[/]");
+        //    }
+        //}
 
         public void CreateAccount()
         {
